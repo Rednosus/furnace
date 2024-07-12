@@ -9,7 +9,6 @@ import funkin.editors.ui.UIContextMenu.UIContextMenuOption;
 import flixel.math.FlxPoint;
 import openfl.ui.MouseCursor;
 import flixel.math.FlxRect;
-import mobile.objects.MobileControls;
 
 class UIState extends MusicBeatState {
 	public var curContextMenu:UIContextMenu = null;
@@ -104,10 +103,9 @@ class UIState extends MusicBeatState {
 	}
 
 	public override function tryUpdate(elapsed:Float) {
-		super.tryUpdate(elapsed);
-
 		FlxG.mouse.getScreenPosition(FlxG.camera, __mousePos);
 
+		super.tryUpdate(elapsed);
 
 		if (buttonHandler != null) {
 			buttonHandler();
@@ -131,7 +129,7 @@ class UIState extends MusicBeatState {
 		super.destroy();
 		__mousePos.put();
 
-		WindowUtils.resetAffixes();
+		WindowUtils.resetTitle();
 		SaveWarning.reset();
 
 		FlxG.stage.window.onKeyDown.remove(onKeyDown);
