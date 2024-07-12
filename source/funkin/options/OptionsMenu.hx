@@ -1,12 +1,11 @@
 package funkin.options;
 
+import funkin.backend.system.framerate.Framerate;
 import funkin.options.type.Checkbox;
 import haxe.xml.Access;
 import funkin.options.type.*;
 import funkin.options.categories.*;
 import funkin.options.TreeMenu;
-import haxe.ds.Map;
-import mobile.flixel.FlxVirtualPad;
 
 class OptionsMenu extends TreeMenu {
 	public static var mainOptions:Array<OptionCategory> = [
@@ -14,27 +13,22 @@ class OptionsMenu extends TreeMenu {
 			name: 'Controls',
 			desc: 'Change Controls for Player 1 and Player 2!',
 			state: null,
-			substate: funkin.options.keybinds.KeybindsOptions,
+			substate: funkin.options.keybinds.KeybindsOptions
 		},
 		{
 			name: 'Gameplay >',
 			desc: 'Change Gameplay options such as Downscroll, Scroll Speed, Naughtyness...',
-			state: GameplayOptions,
+			state: GameplayOptions
 		},
 		{
 			name: 'Appearance >',
 			desc: 'Change Appearance options such as Flashing menus...',
-			state: AppearanceOptions,
-		},
-		{
-			name: 'Mobile Options >',
-			desc: 'Change Options Related To Mobile & Mobile Controls',
-			state: MobileOptions,
+			state: AppearanceOptions
 		},
 		{
 			name: 'Miscellaneous >',
 			desc: 'Use this menu to reset save data or engine settings.',
-			state: MiscOptions,
+			state: MiscOptions
 		}
 	];
 
@@ -42,8 +36,6 @@ class OptionsMenu extends TreeMenu {
 		super.create();
 
 		CoolUtil.playMenuSong();
-
-		DiscordUtil.call("onMenuLoaded", ["Options Menu"]);
 
 		var bg:FlxSprite = new FlxSprite(-80).loadAnimatedGraphic(Paths.image('menus/menuBGBlue'));
 		// bg.scrollFactor.set();
@@ -54,23 +46,26 @@ class OptionsMenu extends TreeMenu {
 		bg.antialiasing = true;
 		add(bg);
 
+		Framerate.offset.y = 60;
+
 		main = new OptionsScreen("Options", "Select a category to continue.", [for(o in mainOptions) new TextOption(o.name, o.desc, function() {
 			if (o.substate != null) {
 				persistentUpdate = false;
 				persistentDraw = true;
-				if (o.substate is MusicBeatSubstate)
+				if (o.substate is MusicBeatSubstate) {
 					openSubState(o.substate);
-				else
+				} else {
 					openSubState(Type.createInstance(o.substate, []));
+				}
 			} else {
-				if (o.state is OptionsScreen)
+				if (o.state is OptionsScreen) {
 					optionsTree.add(o.state);
-				else
+				} else {
 					optionsTree.add(Type.createInstance(o.state, []));
+				}
 			}
 		})]);
-
-		// this is mods settings ig...
+		
 		var xmlPath = Paths.xml("config/options");
 		for(source in [funkin.backend.assets.AssetsLibraryList.AssetSource.SOURCE, funkin.backend.assets.AssetsLibraryList.AssetSource.MODS]) {
 			if (Paths.assetsTree.existsSpecific(xmlPath, "TEXT", source)) {
@@ -80,14 +75,13 @@ class OptionsMenu extends TreeMenu {
 				} catch(e) {
 					Logs.trace('Error while parsing options.xml: ${Std.string(e)}', ERROR);
 				}
-
+				
 				if (access != null)
 					for(o in parseOptionsFromXML(access))
 						main.add(o);
 			}
 		}
-		addVirtualPad('UP_DOWN', 'A_B');
-		addVirtualPadCamera(false);
+		
 	}
 
 	public override function exit() {
@@ -99,7 +93,6 @@ class OptionsMenu extends TreeMenu {
 	/**
 	 * XML STUFF
 	 */
-	 var vpadMap:Map<String, Array<String>> = new Map(); 
 	public function parseOptionsFromXML(xml:Access):Array<OptionType> {
 		var options:Array<OptionType> = [];
 
@@ -130,7 +123,7 @@ class OptionsMenu extends TreeMenu {
 						Logs.trace("A choice option requires an \"id\" for option saving.", WARNING);
 						continue;
 					}
-
+					
 					var optionOptions:Array<Dynamic> = [];
 					var optionDisplayOptions:Array<String> = [];
 
@@ -138,20 +131,14 @@ class OptionsMenu extends TreeMenu {
 						optionOptions.push(choice.att.value);
 						optionDisplayOptions.push(choice.att.name);
 					}
-
+					
 					if(optionOptions.length > 0)
 						options.push(new ArrayOption(name, desc, optionOptions, optionDisplayOptions, node.att.id, null, FlxG.save.data));
-
+					
 				case "menu":
 					options.push(new TextOption(name + " >", desc, function() {
-						optionsTree.add(new OptionsScreen(name, desc, parseOptionsFromXML(node), vpadMap.exists(name) ? vpadMap.get(name)[0] : 'NONE', vpadMap.exists(name) ? vpadMap.get(name)[1] : 'NONE'));
+						optionsTree.add(new OptionsScreen(name, desc, parseOptionsFromXML(node)));
 					}));
-				case "virtualPad":
-					var arr = [
-						node.getAtt("dpadMode") == null ? MusicBeatState.instance.virtualPad.curDPadMode.getName() : node.getAtt("dpadMode"), 
-						node.getAtt("actionMode") == null ? MusicBeatState.instance.virtualPad.curActionMode.getName() : node.getAtt("actionMode")
-					];
-					vpadMap.set(node.getAtt("menuName"), arr);
 			}
 		}
 

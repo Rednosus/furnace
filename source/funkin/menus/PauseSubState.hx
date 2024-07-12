@@ -13,7 +13,6 @@ import flixel.util.FlxColor;
 import funkin.options.keybinds.KeybindsOptions;
 import funkin.menus.StoryMenuState;
 import funkin.backend.utils.FunkinParentDisabler;
-import mobile.funkin.menus.MobileControlSelectSubState;
 
 class PauseSubState extends MusicBeatSubstate
 {
@@ -37,8 +36,6 @@ class PauseSubState extends MusicBeatSubstate
 	}
 
 	var parentDisabler:FunkinParentDisabler;
-	var canOpen:Bool = true;
-
 	override function create()
 	{
 		super.create();
@@ -109,10 +106,7 @@ class PauseSubState extends MusicBeatSubstate
 
 		pauseScript.call("postCreate");
 
-		game.updateDiscordPresence();
-
-		addVirtualPad('UP_DOWN', 'A');
-		addVirtualPadCamera();
+		PlayState.instance.updateDiscordPresence();
 	}
 
 	override function update(elapsed:Float)
@@ -152,25 +146,22 @@ class PauseSubState extends MusicBeatSubstate
 				close();
 			case "Restart Song":
 				parentDisabler.reset();
-				game.registerSmoothTransition();
+				PlayState.instance.registerSmoothTransition();
 				FlxG.resetState();
 			case "Change Controls":
-				var daSubstate:Class<MusicBeatSubstate> = MobileControls.mobileC ? MobileControlSelectSubState : KeybindsOptions;
-				persistentUpdate = false;
-				removeVirtualPad();	
-				openSubState(Type.createInstance(daSubstate, []));
-			// case "Chart Editor":
+				persistentDraw = false;
+				openSubState(new KeybindsOptions());
 			case "Change Options":
 				FlxG.switchState(new OptionsMenu());
 			case "Exit to charter":
 				FlxG.switchState(new funkin.editors.charter.Charter(PlayState.SONG.meta.name, PlayState.difficulty, false));
 			case "Exit to menu":
 				if (PlayState.chartingMode && Charter.undos.unsaved)
-					game.saveWarn(false);
+					PlayState.instance.saveWarn(false);
 				else {
 					PlayState.resetSongInfos();
 					if (Charter.instance != null) Charter.instance.__clearStatics();
-
+					
 					CoolUtil.playMenuSong();
 					FlxG.switchState(PlayState.isStoryMode ? new StoryMenuState() : new FreeplayState());
 				}
@@ -190,14 +181,6 @@ class PauseSubState extends MusicBeatSubstate
 			}
 
 		super.destroy();
-	}
-
-	override function closeSubState() {
-		persistentUpdate = true;
-		super.closeSubState();
-		removeVirtualPad();
-		addVirtualPad('UP_DOWN', 'A');
-		addVirtualPadCamera();
 	}
 
 	function changeSelection(change:Int = 0):Void

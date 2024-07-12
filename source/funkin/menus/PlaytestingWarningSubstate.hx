@@ -68,8 +68,6 @@ class PlaytestingWarningSubstate extends MusicBeatSubstate
 
 		curSelected = options.length-1;
 		changeSelection(0);
-
-		addVirtualPad('LEFT_RIGHT', 'A');
 	}
 
 	var sinner:Float = 0;
@@ -82,7 +80,7 @@ class PlaytestingWarningSubstate extends MusicBeatSubstate
 
 		if (controls.RIGHT_P) changeSelection(1);
 		if (controls.LEFT_P) changeSelection(-1);
-
+	
 		for (i => option in options) {
 			option.x = FlxG.width * ((1+i)/4) - (option.fieldWidth/2);
 			switch(i) {

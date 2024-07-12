@@ -34,10 +34,8 @@ class TitleState extends MusicBeatState
 		MusicBeatState.skipTransIn = true;
 
 		startIntro();
-
+		
 		super.create();
-
-		DiscordUtil.call("onMenuLoaded", ["Title Screen"]);
 	}
 
 	var logoBl:FlxSprite;
@@ -119,13 +117,17 @@ class TitleState extends MusicBeatState
 	{
 		if (FlxG.keys.justPressed.F)  FlxG.fullscreen = !FlxG.fullscreen;
 
-		var pressedEnter:Bool = controls.ACCEPT;
+		var pressedEnter:Bool = FlxG.keys.justPressed.ENTER;
 
-		if (MobileControls.mobileC) {
-			for (touch in FlxG.touches.list)
-					if (touch.justPressed)
-							pressedEnter = true;
+		#if mobile
+		for (touch in FlxG.touches.list)
+		{
+			if (touch.justPressed)
+			{
+				pressedEnter = true;
+			}
 		}
+		#end
 
 		var gamepad:FlxGamepad = FlxG.gamepads.lastActive;
 

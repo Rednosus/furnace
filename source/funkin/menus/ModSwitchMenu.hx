@@ -22,7 +22,19 @@ class ModSwitchMenu extends MusicBeatSubstate {
 		bg.alpha = 0;
 		FlxTween.tween(bg, {alpha: 0.5}, 0.25, {ease: FlxEase.cubeOut});
 
-		mods = ModsFolder.getModsList();
+		for(modFolder in FileSystem.readDirectory(ModsFolder.modsPath)) {
+			if (FileSystem.isDirectory('${ModsFolder.modsPath}${modFolder}')) {
+				mods.push(modFolder);
+			} else {
+				var ext = Path.extension(modFolder).toLowerCase();
+				switch(ext) {
+					case 'zip':
+						// is a zip mod!!
+						mods.push(Path.withoutExtension(modFolder));
+				}
+			}
+		}
+
 		mods.push(null);
 
 		alphabets = new FlxTypedGroup<Alphabet>();
@@ -34,8 +46,6 @@ class ModSwitchMenu extends MusicBeatSubstate {
 		}
 		add(alphabets);
 		changeSelection(0, true);
-
-		addVirtualPad('UP_DOWN', 'A_B');
 	}
 
 	public override function update(elapsed:Float) {

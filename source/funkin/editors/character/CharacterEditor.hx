@@ -49,10 +49,10 @@ class CharacterEditor extends UIState {
 	public override function create() {
 		super.create();
 
-		WindowUtils.suffix = " (Character Editor)";
+		WindowUtils.endfix = " (Character Editor)";
 		SaveWarning.selectionClass = CharacterSelection;
 		SaveWarning.saveFunc = () -> {_file_save(null);};
-
+		
 		topMenu = [
 			{
 				label: "File",
@@ -224,7 +224,7 @@ class CharacterEditor extends UIState {
 		FlxG.cameras.add(uiCamera);
 		FlxG.cameras.add(animsCamera);
 
-		character = new Character(0,0, __character, false, false);
+		character = new Character(0,0,__character, false, false);
 		character.debugMode = true;
 		character.cameras = [charCamera];
 
@@ -257,8 +257,6 @@ class CharacterEditor extends UIState {
 			Framerate.memoryCounter.alpha = 0.4;
 			Framerate.codenameBuildField.alpha = 0.4;
 		}
-
-		DiscordUtil.call("onEditorLoaded", ["Character Editor", __character]);
 	}
 
 	override function destroy() {
@@ -296,7 +294,7 @@ class CharacterEditor extends UIState {
 				closeCurrentContextMenu();
 				openContextMenu(topMenu[2].childs);
 			}
-			if (!MobileControls.mobileC && FlxG.mouse.pressed) {
+			if (FlxG.mouse.pressed) {
 				nextScroll.set(nextScroll.x - FlxG.mouse.deltaScreenX, nextScroll.y - FlxG.mouse.deltaScreenY);
 				currentCursor = HAND;
 			} else
@@ -330,14 +328,14 @@ class CharacterEditor extends UIState {
 
 	function _file_save(_) {
 		#if sys
-		CoolUtil.safeSaveFile(
+		sys.io.File.saveContent(
 			'${Paths.getAssetsRoot()}/data/characters/${character.curCharacter}.xml',
 			buildCharacter()
 		);
 		undos.save();
-		#else
-		_file_saveas(_);
+		return;
 		#end
+		_file_saveas(_);
 	}
 
 	function _file_saveas(_) {
@@ -348,6 +346,10 @@ class CharacterEditor extends UIState {
 	}
 
 	function buildCharacter():String {
+		if (character.isPlayer != character.playerOffsets) {
+			character.switchOffset('singLEFT', 'singRIGHT');
+			character.switchOffset('singLEFTmiss', 'singRIGHTmiss');
+		}
 		var charXML:Xml = character.buildXML([
 			for (button in characterAnimsWindow.buttons.members)
 				button.anim
@@ -583,12 +585,6 @@ class CharacterEditor extends UIState {
 
 	function changeOffset(anim:String, change:FlxPoint, addtoUndo:Bool = true) {
 		if (character.getNameList().length == 0) return;
-
-		var animData = character.animDatas.get(anim);
-		if (animData != null) {
-			animData.x += change.x;
-			animData.y += change.y;
-		}
 
 		character.animOffsets.set(anim, character.getAnimOffset(anim) + change);
 		for (i in characterAnimsWindow.buttons.members)

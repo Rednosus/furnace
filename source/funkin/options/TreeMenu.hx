@@ -7,9 +7,6 @@ import flixel.tweens.FlxTween;
 import funkin.menus.MainMenuState;
 import flixel.util.typeLimit.OneOfTwo;
 import funkin.options.type.OptionType;
-import funkin.options.categories.*;
-import mobile.flixel.FlxVirtualPad;
-import funkin.backend.system.framerate.Framerate;
 
 class TreeMenu extends UIState {
 	public var main:OptionsScreen;
@@ -17,6 +14,7 @@ class TreeMenu extends UIState {
 	public var pathLabel:FunkinText;
 	public var pathDesc:FunkinText;
 	public var pathBG:FlxSprite;
+
 	public static var lastState:Class<FlxState> = null;  // Static for fixing the softlock bugs when resetting the state  - Nex
 
 	public function new() {
@@ -99,8 +97,6 @@ class TreeMenu extends UIState {
 	var menuChangeTween:FlxTween;
 	public override function update(elapsed:Float) {
 		super.update(elapsed);
-		
-		Framerate.offset.y = pathBG.height;
 
 		// in case path gets so long it goes offscreen
 		pathLabel.x = lerp(pathLabel.x, Math.max(0, FlxG.width - 4 - pathLabel.width), 0.125);

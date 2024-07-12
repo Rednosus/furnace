@@ -10,8 +10,8 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import lime.app.Application;
 import funkin.backend.scripting.events.*;
+
 import funkin.options.OptionsMenu;
-import mobile.funkin.menus.MobileControlSelectSubState;
 
 using StringTools;
 
@@ -26,13 +26,13 @@ class MainMenuState extends MusicBeatState
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 
-	public var canAccessDebugMenus:Bool = true;
+	public var canAccessDebugMenus:Bool = false;
 
 	override function create()
 	{
 		super.create();
 
-		DiscordUtil.call("onMenuLoaded", ["Main Menu"]);
+		DiscordUtil.changePresence("In the Menus", null);
 
 		CoolUtil.playMenuSong();
 
@@ -73,16 +73,13 @@ class MainMenuState extends MusicBeatState
 		}
 
 		FlxG.camera.follow(camFollow, null, 0.06);
-		var modsKey:String = MobileControls.mobileC ? "M" : controls.getKeyName(SWITCHMOD);
 
-		var versionShit:FunkinText = new FunkinText(5, FlxG.height - 2, 0, 'Codename Engine v${Application.current.meta.get('version')}\nCommit ${funkin.backend.system.macros.GitCommitMacro.commitNumber} (${funkin.backend.system.macros.GitCommitMacro.commitHash})\n[${modsKey}] Open Mods menu\n');
+		var versionShit:FunkinText = new FunkinText(5, FlxG.height - 2, 0, 'Codename Engine v${Application.current.meta.get('version')}\nCommit ${funkin.backend.system.macros.GitCommitMacro.commitNumber} (${funkin.backend.system.macros.GitCommitMacro.commitHash})\n[TAB] Open Mods menu\n');
 		versionShit.y -= versionShit.height;
 		versionShit.scrollFactor.set();
 		add(versionShit);
 
 		changeItem();
-
-		addVirtualPad('UP_DOWN', 'A_B_M_E');
 	}
 
 	var selectedSomethin:Bool = false;
@@ -95,7 +92,7 @@ class MainMenuState extends MusicBeatState
 		if (!selectedSomethin)
 		{
 			if (canAccessDebugMenus) {
-				if (FlxG.keys.justPressed.SEVEN || virtualPad.buttonE.justPressed) {
+				if (FlxG.keys.justPressed.SEVEN) {
 					persistentUpdate = false;
 					persistentDraw = true;
 					openSubState(new funkin.editors.EditorPicker());
@@ -104,7 +101,9 @@ class MainMenuState extends MusicBeatState
 				if (FlxG.keys.justPressed.SEVEN)
 					FlxG.switchState(new funkin.desktop.DesktopMain());
 				if (FlxG.keys.justPressed.EIGHT) {
-					CoolUtil.safeSaveFile("chart.json", Json.stringify(funkin.backend.chart.Chart.parse("dadbattle", "hard")));
+					#if sys
+					sys.io.File.saveContent("chart.json", Json.stringify(funkin.backend.chart.Chart.parse("dadbattle", "hard")));
+					#end
 				}
 				*/
 			}
@@ -119,7 +118,8 @@ class MainMenuState extends MusicBeatState
 				FlxG.switchState(new TitleState());
 
 			#if MOD_SUPPORT
-			if (controls.SWITCHMOD || virtualPad.buttonM.justPressed) {
+			// make it customisable
+			if (controls.SWITCHMOD) {
 				openSubState(new ModSwitchMenu());
 				persistentUpdate = false;
 				persistentDraw = true;
@@ -132,18 +132,14 @@ class MainMenuState extends MusicBeatState
 			}
 		}
 
+
+
 		super.update(elapsed);
 
 		menuItems.forEach(function(spr:FlxSprite)
 		{
 			spr.screenCenter(X);
 		});
-	}
-
-	override function closeSubState() {
-		super.closeSubState();
-		removeVirtualPad();
-		addVirtualPad('UP_DOWN', 'A_B_M_E');
 	}
 
 	public override function switchTo(nextState:FlxState):Bool {

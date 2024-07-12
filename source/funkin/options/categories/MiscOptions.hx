@@ -3,9 +3,7 @@ package funkin.options.categories;
 
 class MiscOptions extends OptionsScreen {
 	public override function new() {
-		dpadMode = 'NONE';
-		actionMode = 'A_B';
-		super("Miscellaneous", "Use this menu to reset save data or engine settings.", null, #if UPDATE_CHECKING 'UP_DOWN' #else 'NONE' #end, 'A_B');
+		super("Miscellaneous", "Use this menu to reset save data or engine settings.");
 		#if UPDATE_CHECKING
 		add(new Checkbox(
 			"Enable Nightly Updates",

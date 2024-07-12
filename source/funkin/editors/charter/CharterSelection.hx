@@ -16,7 +16,6 @@ using StringTools;
 class CharterSelection extends EditorTreeMenu {
 	public var freeplayList:FreeplaySonglist;
 	public var curSong:ChartMetaData;
-	private final button:String = MobileControls.mobileC ? 'A' : 'ACCEPT';
 	public override function create() {
 		bgType = "charter";
 
@@ -27,18 +26,18 @@ class CharterSelection extends EditorTreeMenu {
 		freeplayList = FreeplaySonglist.get(false);
 
 		var list:Array<OptionType> = [
-			for(s in freeplayList.songs) new EditorIconOption(s.name, "Press " + button + " to choose a difficulty to edit.", s.icon, function() {
+			for(s in freeplayList.songs) new EditorIconOption(s.name, "Press ACCEPT to choose a difficulty to edit.", s.icon, function() {
 				curSong = s;
 				var list:Array<OptionType> = [
-					for(d in s.difficulties) if (d != "")
-						new TextOption(d, "Press " + button + " to edit the chart for the selected difficulty", function() {
+					for(d in s.difficulties) if (d != "") 
+						new TextOption(d, "Press ACCEPT to edit the chart for the selected difficulty", function() {
 							FlxG.switchState(new Charter(s.name, d));
 						})
 				];
 				list.push(new NewOption("New Difficulty", "New Difficulty", function() {
 					FlxG.state.openSubState(new ChartCreationScreen(saveChart));
 				}));
-				optionsTree.add(new OptionsScreen(s.name, "Select a difficulty to continue.", list, 'UP_DOWN', 'A_B'));
+				optionsTree.add(new OptionsScreen(s.name, "Select a difficulty to continue.", list));
 			}, s.parsedColor.getDefault(0xFFFFFFFF))
 		];
 
@@ -46,9 +45,7 @@ class CharterSelection extends EditorTreeMenu {
 			FlxG.state.openSubState(new SongCreationScreen(saveSong));
 		}));
 
-		main = new OptionsScreen("Chart Editor", "Select a song to modify the charts from.", list, 'UP_DOWN', 'A');
-
-		DiscordUtil.call("onEditorTreeLoaded", ["Chart Editor"]);
+		main = new OptionsScreen("Chart Editor", "Select a song to modify the charts from.", list);
 	}
 
 	override function createPost() {
@@ -110,16 +107,16 @@ class CharterSelection extends EditorTreeMenu {
 		sys.FileSystem.createDirectory('$songFolder/charts');
 
 		// Save Files
-		CoolUtil.safeSaveFile('$songFolder/meta.json', Json.stringify(creation.meta, "\t"));
+		sys.io.File.saveContent('$songFolder/meta.json', Json.stringify(creation.meta, "\t"));
 		if (creation.instBytes != null) sys.io.File.saveBytes('$songFolder/song/Inst.${Paths.SOUND_EXT}', creation.instBytes);
 		if (creation.voicesBytes != null) sys.io.File.saveBytes('$songFolder/song/Voices.${Paths.SOUND_EXT}', creation.voicesBytes);
 		#end
 
-		var option = new EditorIconOption(creation.meta.name, "Press " + button + " to choose a difficulty to edit.", creation.meta.icon, function() {
+		var option = new EditorIconOption(creation.meta.name, "Press ACCEPT to choose a difficulty to edit.", creation.meta.icon, function() {
 			curSong = creation.meta;
 			var list:Array<OptionType> = [
 				for(d in creation.meta.difficulties)
-					if (d != "") new TextOption(d, "Press " + button + " to edit the chart for the selected difficulty", function() {
+					if (d != "") new TextOption(d, "Press ACCEPT to edit the chart for the selected difficulty", function() {
 						FlxG.switchState(new Charter(creation.meta.name, d));
 					})
 			];
@@ -148,11 +145,13 @@ class CharterSelection extends EditorTreeMenu {
 		var songFolder:String = '${Paths.getAssetsRoot()}/songs/${curSong.name}';
 
 		// Save Files
-		CoolUtil.safeSaveFile('$songFolder/charts/${name}.json', Json.stringify(data, "\t"));
+		#if sys
+		sys.io.File.saveContent('$songFolder/charts/${name}.json', Json.stringify(data, "\t"));
+		#end
 
 		// Add to List
 		curSong.difficulties.push(name);
-		var option = new TextOption(name, "Press " + button + " to edit the chart for the selected difficulty", function() {
+		var option = new TextOption(name, "Press ACCEPT to edit the chart for the selected difficulty", function() {
 			FlxG.switchState(new Charter(curSong.name, name));
 		});
 		optionsTree.members[optionsTree.members.length-1].insert(optionsTree.members[optionsTree.members.length-1].length-1, option);
@@ -161,7 +160,7 @@ class CharterSelection extends EditorTreeMenu {
 		var meta = Json.parse(sys.io.File.getContent('$songFolder/meta.json'));
 		if (meta.difficulties != null && !meta.difficulties.contains(name)) {
 			meta.difficulties.push(name);
-			CoolUtil.safeSaveFile('$songFolder/meta.json', Json.stringify(meta));
+			sys.io.File.saveContent('$songFolder/meta.json', Json.stringify(meta));
 		}
 	}
 }

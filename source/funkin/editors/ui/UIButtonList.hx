@@ -121,6 +121,7 @@ class UIButtonList<T:UIButton> extends UIWindow {
 				if (dragCallback != null) dragCallback(cast button, button.ID, i);
 				button.ID = i; // Ok back to normal :D
 			}
+				
 		}
 		addButton.selectable = (hovered && !dragging);
 

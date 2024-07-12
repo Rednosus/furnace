@@ -11,9 +11,6 @@ import funkin.options.Options;
 import funkin.game.PlayState;
 import funkin.backend.scripting.EventManager;
 
-import mobile.funkin.backend.utils.SUtil;
-import mobile.objects.MobileControls;
-
 import openfl.utils.Assets;
 
 import flixel.FlxSprite;
@@ -29,7 +26,6 @@ import funkin.menus.ui.Alphabet;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.group.FlxSpriteGroup.FlxTypedSpriteGroup;
 
-using funkin.backend.utils.CoolUtil;
-
 using StringTools;
+using funkin.backend.utils.CoolUtil;
 #end
