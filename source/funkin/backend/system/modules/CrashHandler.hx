@@ -1,19 +1,17 @@
 package funkin.backend.system.modules;
 
+import lime.system.System;
+import funkin.backend.utils.NativeAPI;
+import openfl.Lib;
 import openfl.events.UncaughtErrorEvent;
 import openfl.events.ErrorEvent;
 import openfl.errors.Error;
-import lime.system.System as LimeSystem;
-#if sys
-import sys.FileSystem;
-import sys.io.File;
-#end
+import openfl.events.UncaughtErrorEvent;
+import haxe.CallStack;
 
-class CrashHandler
-{
-	public static function init():Void
-	{
-		openfl.Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onUncaughtError);
+class CrashHandler {
+	public static function init() {
+		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onUncaughtError);
 		#if cpp
 		untyped __global__.__hxcpp_set_critical_error_handler(onError);
 		#elseif hl
@@ -21,12 +19,7 @@ class CrashHandler
 		#end
 	}
 
-	private static function onUncaughtError(e:UncaughtErrorEvent):Void
-	{
-		e.preventDefault();
-		e.stopPropagation();
-		e.stopImmediatePropagation();
-
+	public static function onUncaughtError(e:UncaughtErrorEvent) {
 		var m:String = e.error;
 		if (Std.isOfType(e.error, Error)) {
 			var err = cast(e.error, Error);
@@ -35,48 +28,34 @@ class CrashHandler
 			var err = cast(e.error, ErrorEvent);
 			m = '${err.text}';
 		}
-		var stack = haxe.CallStack.exceptionStack();
-		var stackLabelArr:Array<String> = [];
+		var stack = CallStack.exceptionStack();
 		var stackLabel:String = "";
 		for(e in stack) {
 			switch(e) {
-				case CFunction: stackLabelArr.push("Non-Haxe (C) Function");
-				case Module(c): stackLabelArr.push('Module ${c}');
+				case CFunction: stackLabel += "Non-Haxe (C) Function";
+				case Module(c): stackLabel += 'Module ${c}';
 				case FilePos(parent, file, line, col):
 					switch(parent) {
 						case Method(cla, func):
-							stackLabelArr.push('${file.replace('.hx', '')}.$func() [line $line]');
+							stackLabel += '(${file}) ${cla.split(".").last()}.$func() - line $line';
 						case _:
-							stackLabelArr.push('${file.replace('.hx', '')} [line $line]');
+							stackLabel += '(${file}) - line $line';
 					}
 				case LocalFunction(v):
-					stackLabelArr.push('Local Function ${v}');
+					stackLabel += 'Local Function ${v}';
 				case Method(cl, m):
-					stackLabelArr.push('${cl} - ${m}');
+					stackLabel += '${cl} - ${m}';
 			}
+			stackLabel += "\r\n";
 		}
-		stackLabel = stackLabelArr.join('\r\n');
+
+		e.preventDefault();
+		e.stopPropagation();
+		e.stopImmediatePropagation();
+
+		NativeAPI.showMessageBox("Codename Engine Crash Handler", 'Uncaught Error:$m\n\n$stackLabel', MSG_ERROR);
 		#if sys
-		try
-		{
-			if (!FileSystem.exists('crash'))
-				FileSystem.createDirectory('crash');
-
-			File.saveContent('crash/' + Date.now().toString().replace(' ', '-').replace(':', "'") + '.txt', '$m\n$stackLabel');
-		}
-		catch (e:haxe.Exception)
-			trace('Couldn\'t save error message. (${e.message})');
-		#end
-
-		NativeAPI.showMessageBox("Error!", '$m\n$stackLabel', MSG_ERROR);
-
-		#if js
-		if (FlxG.sound.music != null)
-			FlxG.sound.music.stop();
-
-		js.Browser.window.location.reload(true);
-		#else
-		LimeSystem.exit(1);
+		Sys.exit(1);
 		#end
 	}
 

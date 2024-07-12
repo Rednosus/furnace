@@ -8,9 +8,6 @@ import funkin.menus.TitleState;
 import funkin.menus.BetaWarningState;
 import funkin.backend.chart.EventsData;
 import flixel.FlxState;
-#if mobile
-import mobile.funkin.backend.system.CopyState;
-#end
 
 /**
  * Simple state used for loading the game
@@ -20,22 +17,12 @@ class MainState extends FlxState {
 	public static var betaWarningShown:Bool = false;
 	public override function create() {
 		super.create();
-		funkin.backend.system.Main.framerateSprite.setScale();
 		if (!initiated)
-		{
 			Main.loadGameSettings();
-			#if mobile
-			if (!CopyState.checkExistingFiles())
-			{
-				FlxG.switchState(new CopyState());
-				return;
-			}
-			#end
-		}
 		initiated = true;
 
 		#if sys
-		CoolUtil.deleteFolder('.temp/'); // delete temp folder
+		CoolUtil.deleteFolder('./.temp/'); // delete temp folder
 		#end
 		Options.save();
 
@@ -54,7 +41,7 @@ class MainState extends FlxState {
 				else if (addon.startsWith("[HIGH]")) _highPriorityAddons.insert(0, addon);
 				else _noPriorityAddons.insert(0, addon);
 			}
-			for (addon in _lowPriorityAddons)
+			for (addon in _lowPriorityAddons) 
 				Paths.assetsTree.addLibrary(ModsFolder.loadModLib('${ModsFolder.addonsPath}$addon', StringTools.ltrim(addon.substr("[LOW]".length))));
 		}
 		if (ModsFolder.currentModFolder != null)
@@ -68,7 +55,7 @@ class MainState extends FlxState {
 
 		Main.refreshAssets();
 		ModsFolder.onModSwitch.dispatch(ModsFolder.currentModFolder);
-		DiscordUtil.init();
+		DiscordUtil.reloadJsonData();
 		EventsData.reloadEvents();
 		TitleState.initialized = false;
 
@@ -79,6 +66,9 @@ class MainState extends FlxState {
 			betaWarningShown = true;
 		}
 
-		CoolUtil.safeAddAttributes('./.temp/', NativeAPI.FileAttribute.HIDDEN);
+		#if sys
+		sys.FileSystem.createDirectory('./.temp/');
+		#if windows Sys.command("attrib +h .temp"); #end
+		#end
 	}
 }

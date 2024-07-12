@@ -59,10 +59,8 @@ class UpdateScreen extends MusicBeatState {
 		overSound = FlxG.sound.load(Paths.sound('gameOverEnd'));
 
 		updater.execute();
-
+		
 		FlxG.camera.addShader(rainbowShader = new CustomShader("engine/updaterShader"));
-
-		DiscordUtil.call("onMenuLoaded", ["Update Screen"]);
 	}
 
 
@@ -106,7 +104,7 @@ class UpdateScreen extends MusicBeatState {
 			// update is done, play bf's anim
 			FlxG.sound.music.stop();
 			overSound.play();
-
+			
 			remove(generalProgress);
 			remove(partProgress);
 			generalProgress = FlxDestroyUtil.destroy(generalProgress);
@@ -121,7 +119,7 @@ class UpdateScreen extends MusicBeatState {
 					#if windows
 					// the executable has been replaced, restart the game entirely
 					Sys.command('start /B ${AsyncUpdater.executableName}');
-					#elseif !mobile
+					#else
 					// We have to make the new executable allowed to execute
 					// before we can execute it!
 					Sys.command('chmod +x ./${AsyncUpdater.executableName} && ./${AsyncUpdater.executableName}');

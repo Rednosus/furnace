@@ -16,9 +16,6 @@ import flixel.addons.transition.TransitionData;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRect;
 import funkin.backend.system.modules.*;
-#if mobile
-import mobile.funkin.backend.system.MobileRatioScaleMode as FunkinRatioScaleMode;
-#end
 
 #if ALLOW_MULTITHREADING
 import sys.thread.Thread;
@@ -27,7 +24,6 @@ import sys.thread.Thread;
 import sys.io.File;
 #end
 import funkin.backend.assets.ModsFolder;
-import lime.system.System as LimeSystem;
 
 class Main extends Sprite
 {
@@ -42,7 +38,9 @@ class Main extends Sprite
 	public static var noTerminalColor:Bool = false;
 
 	public static var scaleMode:FunkinRatioScaleMode;
+	#if !mobile
 	public static var framerateSprite:funkin.backend.system.framerate.Framerate;
+	#end
 
 	var gameWidth:Int = 1280; // Width of the game in pixels (might be less / more in actual pixels).
 	var gameHeight:Int = 720; // Height of the game in pixels (might be less / more in actual pixels).
@@ -65,24 +63,12 @@ class Main extends Sprite
 
 		instance = this;
 
-		#if mobile
-		#if android
-		SUtil.doPermissionsShit();
-		#end
-		Sys.setCwd(SUtil.getStorageDirectory(false));
-		#end
-
 		CrashHandler.init();
-
-		#if !html5 framerateSprite = new funkin.backend.system.framerate.Framerate(); #end
 
 		addChild(game = new FunkinGame(gameWidth, gameHeight, MainState, Options.framerate, Options.framerate, skipSplash, startFullscreen));
 
-		#if android FlxG.android.preventDefaultKeys = [BACK]; #end
-
-		#if !html5
-		addChild(framerateSprite);
-		FlxG.stage.window.onResize.add((w:Int, h:Int) -> framerateSprite.setScale());
+		#if (!mobile && !web)
+		addChild(framerateSprite = new funkin.backend.system.framerate.Framerate());
 		SystemInfo.init();
 		#end
 	}
@@ -134,6 +120,8 @@ class Main extends Sprite
 		ShaderResizeFix.init();
 		Logs.init();
 		Paths.init();
+		ModsFolder.init();
+		DiscordUtil.init();
 		#if GLOBAL_SCRIPT
 		funkin.backend.scripting.GlobalScript.init();
 		#end
@@ -141,12 +129,12 @@ class Main extends Sprite
 		#if (sys && TEST_BUILD)
 			trace("Used cne test / cne build. Switching into source assets.");
 			#if MOD_SUPPORT
-				ModsFolder.modsPath = Sys.getCwd() + '${pathBack}mods/';
-				ModsFolder.addonsPath = Sys.getCwd() + '${pathBack}addons/';
+				ModsFolder.modsPath = './${pathBack}mods/';
+				ModsFolder.addonsPath = './${pathBack}addons/';
 			#end
-			Paths.assetsTree.__defaultLibraries.push(ModsFolder.loadLibraryFromFolder('assets', Sys.getCwd() + '${pathBack}assets/', true));
+			Paths.assetsTree.__defaultLibraries.push(ModsFolder.loadLibraryFromFolder('assets', './${pathBack}assets/', true));
 		#elseif USE_ADAPTED_ASSETS
-			Paths.assetsTree.__defaultLibraries.push(ModsFolder.loadLibraryFromFolder('assets', Sys.getCwd() + 'assets/', true));
+			Paths.assetsTree.__defaultLibraries.push(ModsFolder.loadLibraryFromFolder('assets', './assets/', true));
 		#end
 
 
@@ -166,21 +154,16 @@ class Main extends Sprite
 		Conductor.init();
 		AudioSwitchFix.init();
 		EventManager.init();
-
 		FlxG.signals.preStateSwitch.add(onStateSwitch);
 		FlxG.signals.postStateSwitch.add(onStateSwitchPost);
 
-		FlxG.mouse.useSystemCursor = !MobileControls.mobileC;
+		FlxG.mouse.useSystemCursor = true;
 
-		ModsFolder.init();
 		#if MOD_SUPPORT
 		ModsFolder.switchMod(modToLoad.getDefault(Options.lastLoadedMod));
 		#end
 
 		initTransition();
-		#if mobile
-		LimeSystem.allowScreenTimeout = Options.screenTimeOut;
-		#end
 	}
 
 	public static function refreshAssets() {

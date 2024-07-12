@@ -92,8 +92,6 @@ class UpdateAvailableScreen extends MusicBeatState {
 		add(skipButton);
 
 		oldPos = FlxG.mouse.getScreenPosition();
-
-		DiscordUtil.call("onMenuLoaded", ["Update Available Screen"]);
 	}
 
 	var destY:Float = 0;
