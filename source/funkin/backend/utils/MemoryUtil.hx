@@ -69,12 +69,8 @@ class MemoryUtil {
 		return funkin.backend.utils.native.Windows.getTotalRam();
 		#elseif mac
 		return funkin.backend.utils.native.Mac.getTotalRam();
-		#elseif ios
-		return mobile.funkin.backend.utils.native.IOS.getTotalRam();
 		#elseif linux
 		return funkin.backend.utils.native.Linux.getTotalRam();
-		#elseif android
-		return mobile.funkin.backend.utils.native.Android.getTotalRam();
 		#else
 		return 0;
 		#end
@@ -83,8 +79,6 @@ class MemoryUtil {
 	public static inline function currentMemUsage() {
 		#if cpp
 		return Gc.memInfo64(Gc.MEM_INFO_USAGE);
-		#elseif hl
-		return Gc.stats().currentMemory;
 		#elseif sys
 		return cast(cast(System.totalMemory, UInt), Float);
 		#else
@@ -128,7 +122,7 @@ class MemoryUtil {
 		var process = new HiddenProcess("wmic", ["memorychip", "get", "SMBIOSMemoryType"]);
 		if (process.exitCode() == 0) memoryOutput = Std.int(Std.parseFloat(process.stdout.readAll().toString().trim().split("\n")[1]));
 		if (memoryOutput != -1) return memoryMap[memoryOutput];
-		#elseif (mac || ios)
+		#elseif mac
 		var process = new HiddenProcess("system_profiler", ["SPMemoryDataType"]);
 		var reg = ~/Type: (.+)/;
 		reg.match(process.stdout.readAll().toString());
@@ -142,9 +136,6 @@ class MemoryUtil {
 				return line.substring("Type:".length).trim();
 			}
 		}
-		#elseif android
-		// MTODO: Do get mem type for android smh?
-		return "null";
 		#end
 		return "Unknown";
 	}

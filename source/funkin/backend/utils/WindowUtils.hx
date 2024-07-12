@@ -4,22 +4,22 @@ import openfl.Lib;
 
 class WindowUtils {
 	public static var winTitle(default, set):String;
-	private static function set_winTitle(value:String):String {
-		winTitle = value;
+	public static function set_winTitle(newWinTitle:String):String {
+		winTitle = newWinTitle;
 		updateTitle();
-		return value;
+		return newWinTitle;
 	}
 	public static var prefix(default, set):String = "";
-	private static function set_prefix(value:String):String {
-		prefix = value;
+	public static function set_prefix(newPrefix:String):String {
+		prefix = newPrefix;
 		updateTitle();
-		return value;
+		return newPrefix;
 	}
-	public static var suffix(default, set):String = "";
-	private static function set_suffix(value:String):String {
-		suffix = value;
+	public static var endfix(default, set):String = "";
+	public static function set_endfix(endPrefix:String):String {
+		endfix = endPrefix;
 		updateTitle();
-		return value;
+		return endPrefix;
 	}
 
 	public static var preventClosing:Bool = true;
@@ -43,23 +43,10 @@ class WindowUtils {
 
 	public static inline function resetTitle() {
 		winTitle = Lib.application.meta["name"];
-		resetAffixes();
-	}
-
-	public static inline function resetAffixes() {
-		prefix = suffix = "";
+		prefix = endfix = "";
 		updateTitle();
 	}
 
 	public static inline function updateTitle()
-		Lib.application.window.title = '$prefix$winTitle$suffix';
-
-	// backwards compat
-	@:noCompletion public static var endfix(get, set):String;
-	@:noCompletion private static function set_endfix(value:String):String {
-		return suffix = value;
-	}
-	@:noCompletion private static function get_endfix():String {
-		return suffix;
-	}
+		Lib.application.window.title = '$prefix$winTitle$endfix';
 }
