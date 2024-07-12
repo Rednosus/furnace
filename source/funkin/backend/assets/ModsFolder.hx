@@ -35,11 +35,11 @@ class ModsFolder {
 	/**
 	 * Path to the `mods` folder.
 	 */
-	public static var modsPath:String = SUtil.getStorageDirectory(true) + "mods/";
+	public static var modsPath:String = "./mods/";
 	/**
 	 * Path to the `addons` folder.
 	 */
-	public static var addonsPath:String = SUtil.getStorageDirectory(true) + "addons/";
+	public static var addonsPath:String = "./addons/";
 
 	/**
 	 * If accessing a file as assets/data/global/LIB_mymod.hx should redirect to mymod:assets/data/global.hx
@@ -51,13 +51,10 @@ class ModsFolder {
 	 */
 	private static var __firstTime:Bool = true;
 	/**
-	 * Initialises `mods` folder.
+	 * Initialises `mods` folder by adding callbacks and such.
 	 */
 	public static function init() {
-		if (!FileSystem.exists(modsPath)) FileSystem.createDirectory(modsPath);
-		if (!FileSystem.exists(addonsPath)) FileSystem.createDirectory(addonsPath);
-		if(!getModsList().contains(Options.lastLoadedMod))
-			Options.lastLoadedMod = null;
+
 	}
 
 	/**
@@ -92,24 +89,6 @@ class ModsFolder {
 		#end
 	}
 
-	public static function getModsList():Array<String> {
-		var mods:Array<String> = [];
-		#if MOD_SUPPORT
-		for(modFolder in FileSystem.readDirectory(modsPath)) {
-			if (FileSystem.isDirectory('${modsPath}${modFolder}')) {
-				mods.push(modFolder);
-			} else {
-				var ext = Path.extension(modFolder).toLowerCase();
-				switch(ext) {
-					case 'zip':
-						// is a zip mod!!
-						mods.push(Path.withoutExtension(modFolder));
-				}
-			}
-		}
-		#end
-		return mods;
-	}
 	public static function getLoadedMods():Array<String> {
 		var libs = [];
 		for (i in Paths.assetsTree.libraries) {

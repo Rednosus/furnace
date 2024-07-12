@@ -25,16 +25,16 @@ import openfl.display.ShaderInput;
 class FunkinShader extends FlxShader implements IHScriptCustomBehaviour {
 	private static var __instanceFields = Type.getInstanceFields(FunkinShader);
 
-	public var glslVer:String = #if mobile "100" #else "120" #end;
+	public var glslVer:String = "120";
 
 	/**
 	 * Creates a new shader from the specified fragment and vertex source.
 	 * Accepts `#pragma header`.
 	 * @param frag Fragment source (pass `null` to use default)
 	 * @param vert Vertex source (pass `null` to use default)
-	 * @param glslVer Version of GLSL to use (defaults to 120 at desktop, 100 at mobile)
+	 * @param glslVer Version of GLSL to use (defaults to 120)
 	 */
-	public override function new(frag:String, vert:String, glslVer:String = #if mobile "100" #else "120" #end) {
+	public override function new(frag:String, vert:String, glslVer:String = "120") {
 		if (frag == null) frag = ShaderTemplates.defaultFragmentSource;
 		if (vert == null) vert = ShaderTemplates.defaultVertexSource;
 		this.glFragmentSource = frag;
@@ -370,18 +370,15 @@ class FunkinShader extends FlxShader implements IHScriptCustomBehaviour {
 		var field = Reflect.field(data, name);
 		var cl = Type.getClassName(Type.getClass(field));
 
-		// little problem we are facing boys...
-
-		// cant do "field is ShaderInput" because ShaderInput has the @:generic metadata
-		// aka instead of ShaderInput<Float> it gets built as ShaderInput_Float
-		// this should be fine tho because we check the class, and the fields dont vary based on the type
-
-		// thanks for looking in the code cne fans :D!! -lunar
-
-		if (cl.startsWith("openfl.display.ShaderParameter"))
-			return (field.__length > 1) ? field.value : field.value[0];
-		else if (cl.startsWith("openfl.display.ShaderInput"))
-			return field.input;
+		// cant do "field is ShaderInput" for some reason
+		if (cl.startsWith("openfl.display.ShaderParameter")) {
+			var sp = cast(field, ShaderParameter<Dynamic>);
+			@:privateAccess
+			return (sp.__length > 1) ? sp.value : sp.value[0];
+		} else if (cl.startsWith("openfl.display.ShaderInput")) {
+			var si = cast(field, ShaderInput<Dynamic>);
+			return si.input;
+		}
 		return field;
 	}
 

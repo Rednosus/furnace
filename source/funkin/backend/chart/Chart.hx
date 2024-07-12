@@ -1,6 +1,5 @@
 package funkin.backend.chart;
 
-import funkin.backend.system.Conductor;
 import funkin.backend.chart.ChartData;
 import flixel.util.FlxColor;
 import haxe.io.Path;
@@ -84,6 +83,7 @@ class Chart {
 				}
 			}
 		}
+
 		return data;
 	}
 
@@ -143,7 +143,7 @@ class Chart {
 				base = data;
 			} else {
 				// base game chart
-				FNFLegacyParser.parse(data, base);
+				BaseGameParser.parse(data, base);
 			}
 			#end
 		}
@@ -196,26 +196,21 @@ class Chart {
 	public static function save(songFolderPath:String, chart:ChartData, difficulty:String = "normal", ?saveSettings:ChartSaveSettings):ChartData {
 		if (saveSettings == null) saveSettings = {};
 
-		if (saveSettings.saveMetaInChart == null) saveSettings.saveMetaInChart = true;
-		if (saveSettings.saveEventsInChart == null) saveSettings.saveEventsInChart = true;
-
 		var filteredChart = filterChartForSaving(chart, saveSettings.saveMetaInChart, saveSettings.saveEventsInChart);
 		var meta = filteredChart.meta;
 
 		#if sys
-		var saveFolder:String = saveSettings.folder == null ? "charts" : saveSettings.folder;
+		if (!FileSystem.exists('${songFolderPath}/charts/'))
+			FileSystem.createDirectory('${songFolderPath}/charts/');
 
-		if (!FileSystem.exists('${songFolderPath}/$saveFolder/'))
-			FileSystem.createDirectory('${songFolderPath}/$saveFolder/');
-
-		var chartPath = '${songFolderPath}/$saveFolder/${difficulty.trim()}.json';
+		var chartPath = '${songFolderPath}/charts/${difficulty.trim()}.json';
 		var metaPath = '${songFolderPath}/meta.json';
 
-		CoolUtil.safeSaveFile(chartPath, Json.stringify(filteredChart, null, saveSettings.prettyPrint == true ? "\t" : null));
+		File.saveContent(chartPath, Json.stringify(filteredChart, null, saveSettings.prettyPrint == true ? "\t" : null));
 
 		// idk how null reacts to it so better be sure
 		if (saveSettings.overrideExistingMeta == true || !FileSystem.exists(metaPath))
-			CoolUtil.safeSaveFile(metaPath, Json.stringify(meta, null, saveSettings.prettyPrint == true ? "\t" : null));
+			File.saveContent(metaPath, Json.stringify(meta, null, saveSettings.prettyPrint == true ? "\t" : null));
 		#end
 		return filteredChart;
 	}
@@ -247,5 +242,4 @@ typedef ChartSaveSettings = {
 	var ?saveMetaInChart:Bool;
 	var ?saveEventsInChart:Bool;
 	var ?prettyPrint:Bool;
-	var ?folder:String;
 }

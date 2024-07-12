@@ -168,7 +168,7 @@ class Conductor
 			// update conductor
 			songPosition = lastSongPos;
 		} else {
-			songPosition += songOffset + elapsed * 1000;
+			songPosition = songPosition + songOffset + elapsed * 1000;
 		}
 	}
 

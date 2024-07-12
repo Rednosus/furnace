@@ -3,22 +3,9 @@ package funkin.backend.system.framerate;
 import funkin.backend.utils.native.HiddenProcess;
 import funkin.backend.utils.MemoryUtil;
 import funkin.backend.system.Logs;
-#if android
-import android.os.Build;
-import android.os.Build.VERSION;
-#end
 
 using StringTools;
 
-#if cpp
-#if windows
-@:cppFileCode('#include <windows.h>')
-#elseif (mac || ios)
-@:cppFileCode('#include <mach-o/arch.h>')
-#else
-@:headerInclude('sys/utsname.h')
-#end
-#end
 class SystemInfo extends FramerateCategory {
 	public static var osInfo:String = "Unknown";
 	public static var gpuName:String = "Unknown";
@@ -75,7 +62,7 @@ class SystemInfo extends FramerateCategory {
 			if (process.exitCode() != 0) throw 'Could not fetch CPU information';
 
 			cpuName = process.stdout.readAll().toString().trim().split("\n")[1].trim();
-			#elseif (mac || ios)
+			#elseif mac
 			var process = new HiddenProcess("sysctl -a | grep brand_string"); // Somehow this isnt able to use the args but it still works
 			if (process.exitCode() != 0) throw 'Could not fetch CPU information';
 
@@ -90,8 +77,6 @@ class SystemInfo extends FramerateCategory {
 					break;
 				}
 			}
-			#elseif android
-			cpuName = (VERSION.SDK_INT >= VERSION_CODES.S) ? Build.SOC_MODEL : Build.HARDWARE;
 			#end
 		} catch (e) {
 			Logs.trace('Unable to grab CPU Name: $e', ERROR, RED);
@@ -131,9 +116,9 @@ class SystemInfo extends FramerateCategory {
 	}
 
 	static function formatSysInfo() {
-		__formattedSysText = #if android 'Device: ${Build.BRAND.charAt(0).toUpperCase() + Build.BRAND.substring(1)} ${Build.MODEL} (${Build.BOARD})\n' #else "" #end;
+		__formattedSysText = "";
 		if (osInfo != "Unknown") __formattedSysText += 'System: $osInfo';
-		if (cpuName != "Unknown") __formattedSysText += '\nCPU: $cpuName ${getCPUArch()}';
+		if (cpuName != "Unknown") __formattedSysText += '\nCPU: $cpuName ${openfl.system.Capabilities.cpuArchitecture} ${(openfl.system.Capabilities.supports64BitProcesses ? '64-Bit' : '32-Bit')}';
 		if (gpuName != cpuName || vRAM != "Unknown") {
 			var gpuNameKnown = gpuName != "Unknown" && gpuName != cpuName;
 			var vramKnown = vRAM != "Unknown";
@@ -160,45 +145,5 @@ class SystemInfo extends FramerateCategory {
 
 		this.text.text = _text;
 		super.__enterFrame(t);
-	}
-
-	#if windows
-	@:functionCode('
-		SYSTEM_INFO osInfo;
-
-		GetSystemInfo(&osInfo);
-
-		switch(osInfo.wProcessorArchitecture)
-		{
-			case 9:
-				return ::String("x86_64");
-			case 5:
-				return ::String("ARM");
-			case 12:
-				return ::String("ARM64");
-			case 6:
-				return ::String("IA-64");
-			case 0:
-				return ::String("x86");
-			default:
-				return ::String("Unknown");
-		}
-	')
-	#elseif (mac || ios)
-	@:functionCode('
-		const NXArchInfo *archInfo = NXGetLocalArchInfo();
-    	return ::String(archInfo == NULL ? "Unknown" : archInfo->name);
-	')
-	#elseif cpp
-	@:functionCode('
-		struct utsname osInfo{};
-		uname(&osInfo);
-		return ::String(osInfo.machine);
-	')
-	#end
-	@:noCompletion
-	private static function getCPUArch():String
-	{
-		return "Unknown";
 	}
 }

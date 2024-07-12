@@ -100,7 +100,7 @@ class Paths
 		}
 		return getPath('images/$key.$ext', library);
 	}
-
+	
 	inline static public function script(key:String, ?library:String, isAssetsPath:Bool = false) {
 		var scriptPath = isAssetsPath ? key : getPath(key, library);
 		if (!OpenFlAssets.exists(scriptPath)) {
@@ -171,7 +171,7 @@ class Paths
 		return FlxAtlasFrames.fromAseprite('$key.png', '$key.json');
 
 	inline static public function getAssetsRoot():String
-		return ModsFolder.currentModFolder != null ? '${ModsFolder.modsPath}${ModsFolder.currentModFolder}' : 'assets';
+		return  ModsFolder.currentModFolder != null ? '${ModsFolder.modsPath}${ModsFolder.currentModFolder}' : './assets';
 
 	/**
 	 * Gets frames at specified path.
